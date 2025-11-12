@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 class YouTubeToBilibiliProcessor:
     """YouTube 视频自动处理并上传到 B 站"""
     
-    def __init__(self, youtube_url: str, work_dir: str = "../data"):
+    def __init__(self, youtube_url: str, work_dir: str = "./data"):
         """
         初始化处理器
         
@@ -382,10 +382,13 @@ class YouTubeToBilibiliProcessor:
         
         # 调用封面生成脚本
         cover_script = Path(__file__).parent / 'auto_generate_cover.py'
+        # 计算项目根目录的 output 路径
+        project_output = Path(__file__).parent.parent / 'output'
         cmd = [
             'python3',
             str(cover_script),
-            '--video', str(video_path)
+            '--video', str(video_path),
+            '--output-dir', str(project_output)
         ]
         
         logger.info(f"🖼️  正在生成封面...")
@@ -404,7 +407,8 @@ class YouTubeToBilibiliProcessor:
             
             # 找到输出目录
             video_name = video_path.stem
-            output_dir = Path(__file__).parent.parent.parent / 'output' / video_name
+            # 从 src/ 目录往上一层到项目根目录，然后进入 output/
+            output_dir = Path(__file__).parent.parent / 'output' / video_name
             
             if not output_dir.exists():
                 logger.error(f"❌ 输出目录未生成: {output_dir}")
@@ -706,8 +710,8 @@ def main():
     
     parser.add_argument(
         '--work-dir',
-        default='../data',
-        help='工作目录（默认：../data）'
+        default='./data',
+        help='工作目录（默认：./data）'
     )
     
     parser.add_argument(

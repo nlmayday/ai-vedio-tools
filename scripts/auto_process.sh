@@ -23,19 +23,21 @@ echo ""
 read -p "请选择 (1-3): " choice
 echo ""
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 case $choice in
     1)
         echo "▶️  执行一次处理..."
-        python ../src/auto_process_videos.py
+        python "$SCRIPT_DIR/../src/auto_process_videos.py"
         ;;
     2)
         echo "🔄 启动持续监控（按 Ctrl+C 停止）..."
-        python ../src/auto_process_videos.py --watch
+        python "$SCRIPT_DIR/../src/auto_process_videos.py" --watch
         ;;
     3)
         echo "📊 处理状态："
-        python ../src/auto_process_videos.py --status
-        ;;
+        python "$SCRIPT_DIR/../src/auto_process_videos.py" --status
+        ;; 
     *)
         echo "❌ 无效选项"
         exit 1

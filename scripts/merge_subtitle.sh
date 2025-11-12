@@ -7,9 +7,9 @@ if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
     echo ""
     echo "示例:"
     echo "  ./merge_subtitle.sh \\"
-    echo "    ../data/video.webm \\"
-    echo "    ../data/video.en.vtt \\"
-    echo "    ../data/video.zh.vtt"
+    echo "    ./data/video.webm \\"
+    echo "    ./data/video.en.vtt \\"
+    echo "    ./data/video.zh.vtt"
     exit 1
 fi
 
@@ -45,7 +45,8 @@ VIDEO_NAME=$(basename "${VIDEO%.*}")
 OUTPUT_DIR="../output/$VIDEO_NAME"
 mkdir -p "$OUTPUT_DIR"
 
-python ../src/video_subtitle_merger.py \
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+python "$SCRIPT_DIR/../src/video_subtitle_merger.py" \
   --video "$VIDEO" \
   --en-subtitle "$EN_SUB" \
   --zh-subtitle "$ZH_SUB" \

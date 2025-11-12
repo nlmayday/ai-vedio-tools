@@ -183,7 +183,7 @@ ls ../output/视频名/*.jpg
 ls ../output/视频名/*.png
 
 # 如果没有，重新生成封面
-./cover.sh ../data/视频.mp4
+./cover.sh ./data/视频.mp4
 ```
 
 ### 问题 2：未找到视频文件
@@ -196,7 +196,7 @@ ls ../output/视频名/*.png
 ls ../output/视频名/*.mp4
 
 # 如果没有，重新合并字幕
-./merge_subtitle.sh ../data/视频.webm ../data/视频.en.vtt ../data/视频.zh.vtt
+./merge_subtitle.sh ./data/视频.webm ./data/视频.en.vtt ./data/视频.zh.vtt
 ```
 
 ### 问题 3：未找到 cover_texts.json
@@ -206,7 +206,7 @@ ls ../output/视频名/*.mp4
 **解决方案：**
 ```bash
 # 重新生成封面和信息
-./cover.sh ../data/视频.mp4
+./cover.sh ./data/视频.mp4
 ```
 
 ### 问题 4：MCP Playwright 未响应

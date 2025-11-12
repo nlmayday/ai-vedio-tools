@@ -12,8 +12,8 @@ echo ""
 
 # 检查是否有测试视频
 TEST_VIDEO=""
-if [ -f "../data/AI and human evolution ｜ Yuval Noah Harari [jt3Ul3rPXaE].mp4" ]; then
-    TEST_VIDEO="../data/AI and human evolution ｜ Yuval Noah Harari [jt3Ul3rPXaE].mp4"
+if [ -f "./data/AI and human evolution ｜ Yuval Noah Harari [jt3Ul3rPXaE].mp4" ]; then
+    TEST_VIDEO="./data/AI and human evolution ｜ Yuval Noah Harari [jt3Ul3rPXaE].mp4"
 elif [ -f "../output/AI and human evolution ｜ Yuval Noah Harari [jt3Ul3rPXaE]/video_bilingual_soft.mp4" ]; then
     TEST_VIDEO="../output/AI and human evolution ｜ Yuval Noah Harari [jt3Ul3rPXaE]/video_bilingual_soft.mp4"
 else

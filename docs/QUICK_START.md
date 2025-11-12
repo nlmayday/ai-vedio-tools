@@ -36,10 +36,10 @@ cd vedio-tools
 
 ```bash
 # 1. 翻译字幕
-./translate.sh ../data/video.en.vtt
+./translate.sh ./data/video.en.vtt
 
 # 2. 生成封面和B站信息
-./cover.sh ../data/video.webm
+./cover.sh ./data/video.webm
 
 # 3. 查看输出
 ./show_output.sh "video"
@@ -56,7 +56,7 @@ cd vedio-tools
 
 ```bash
 # 在新终端窗口运行（15-20分钟）
-./burn_subtitle.sh ../data/video.webm
+./burn_subtitle.sh ./data/video.webm
 ```
 
 ---

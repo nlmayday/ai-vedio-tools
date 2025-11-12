@@ -257,7 +257,7 @@ python3 src/youtube_to_bilibili.py --help
 
 **参数：**
 - `youtube_url`: YouTube 视频链接（必需）
-- `--work-dir DIR`: 工作目录（默认：`../data`）
+- `--work-dir DIR`: 工作目录（默认：`./data`）
 - `--prepare-upload`: 准备上传配置
 - `--auto-upload`: 自动上传到 B 站（需要 MCP Playwright）
 

@@ -6,7 +6,7 @@ if [ -z "$1" ]; then
     echo "用法: ./cover.sh <视频文件>"
     echo ""
     echo "示例:"
-    echo "  ./cover.sh ../data/video.mp4"
+    echo "  ./cover.sh ./data/video.mp4"
     exit 1
 fi
 
@@ -38,7 +38,8 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo "📹 视频: $(basename "$VIDEO")"
 echo ""
 
-python ../src/auto_generate_cover.py --video "$VIDEO"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+python "$SCRIPT_DIR/../src/auto_generate_cover.py" --video "$VIDEO"
 
 VIDEO_NAME=$(basename "${VIDEO%.*}")
 OUTPUT_DIR="../output/$VIDEO_NAME"

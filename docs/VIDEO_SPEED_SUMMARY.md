@@ -37,7 +37,7 @@ cd vedio-tools
 ./adjust_speed.sh 输入视频.mp4 配置文件.json 输出视频.mp4
 
 # 实际例子
-./adjust_speed.sh ../data/video.mp4 speed_config_example.json ../output/video_adjusted.mp4
+./adjust_speed.sh ./data/video.mp4 speed_config_example.json ./output/video_adjusted.mp4
 ```
 
 ### 方法 2：直接使用 Python 脚本

@@ -54,7 +54,8 @@ if [ -z "$DEEPSEEK_API_KEY" ]; then
 fi
 
 # 执行处理
-python3 ../src/youtube_to_bilibili.py "$YOUTUBE_URL"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+python3 "$SCRIPT_DIR/../src/youtube_to_bilibili.py" "$YOUTUBE_URL"
 
 # 检查结果
 if [ $? -eq 0 ]; then

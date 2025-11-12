@@ -16,6 +16,7 @@ vedio-tools/
 │   ├── translate.sh           # 翻译字幕
 │   ├── merge_subtitle.sh      # 合并字幕
 │   ├── cover.sh               # 生成封面
+│   ├── image_to_cover.sh      # 🖼️  从图片生成封面 🆕
 │   ├── burn_subtitle.sh       # 烧录硬字幕
 │   ├── show_output.sh         # 查看输出
 │   ├── prepare_upload.sh      # 准备B站上传
@@ -27,6 +28,7 @@ vedio-tools/
 │   ├── subtitle_translator_smart.py  # 智能翻译
 │   ├── video_subtitle_merger.py      # 字幕合并
 │   ├── auto_generate_cover.py        # AI封面生成
+│   ├── image_to_cover.py             # 🖼️  从图片生成封面 🆕
 │   ├── bilibili_auto_upload.py       # B站自动上传
 │   ├── youtube_to_bilibili.py        # YouTube到B站全流程 🆕
 │   ├── speed_adjuster.py             # 视频分段变速 🆕
@@ -80,6 +82,27 @@ vedio-tools/
 - 4种精美配色方案（modern/vibrant/elegant/fresh）
 - 视频帧提取背景
 - 中英双语字幕支持
+
+### 🖼️ 从图片生成封面 🆕
+
+- **直接使用图片**：使用任何图片作为封面背景
+- **智能文字叠加**：自动添加标题和中英字幕
+- **多种配色方案**：4种精美配色风格
+- **专业布局**：居中对齐，带阴影效果
+
+```bash
+# 使用图片生成封面
+./scripts/image_to_cover.sh background.jpg "精彩内容" "即将开始"
+
+# 高级用法（中英双字幕）
+./scripts/image_to_cover.sh photo.png "AI工具" "" "智能工具集" "AI Tools"
+```
+
+**配色方案：**
+- `modern`: 现代风格（深蓝色）
+- `vibrant`: 活力风格（紫红色）
+- `elegant`: 优雅风格（黑金色）
+- `fresh`: 清新风格（蓝色）
 
 ### 🎬 视频分段变速 🆕
 - 根据 JSON 配置对视频不同片段应用不同播放速度
@@ -150,32 +173,36 @@ export DEEPSEEK_API_KEY="your_api_key"
 
 ```bash
 # 单个文件
-./scripts/translate.sh ../data/video.en.vtt
+./scripts/translate.sh ./data/video.en.vtt
 
 # 批量翻译
-./scripts/translate.sh --batch ../data
+./scripts/translate.sh --batch ./data
 ```
 
 ### 3. 生成封面
 
 ```bash
-./scripts/cover.sh ../data/video.mp4
+# 从视频生成封面
+./scripts/cover.sh ./data/video.mp4
+
+# 从图片生成封面 🆕
+./scripts/image_to_cover.sh background.jpg "精彩内容" "即将开始"
 ```
 
 ### 4. 合并字幕
 
 ```bash
 ./scripts/merge_subtitle.sh \
-  ../data/video.webm \
-  ../data/video.en.vtt \
-  ../data/video.zh.vtt
+  ./data/video.webm \
+  ./data/video.en.vtt \
+  ./data/video.zh.vtt
 ```
 
 ### 5. 烧录硬字幕（B站）
 
 ```bash
 # 在新终端窗口运行
-./scripts/burn_subtitle.sh ../data/video.webm
+./scripts/burn_subtitle.sh ./data/video.webm
 ```
 
 ### 6. 查看输出
@@ -195,7 +222,7 @@ export DEEPSEEK_API_KEY="your_api_key"
 ./scripts/adjust_speed.sh input.mp4 examples/speed_config.json output.mp4
 
 # 使用示例配置文件
-./scripts/adjust_speed.sh ../data/video.mp4 examples/speed_config_example.json ../output/video_adjusted.mp4
+./scripts/adjust_speed.sh ./data/video.mp4 examples/speed_config_example.json ./output/video_adjusted.mp4
 ```
 
 **功能特点：**
@@ -267,7 +294,11 @@ python src/video_subtitle_merger.py \
 
 #### 生成封面
 ```bash
+# 从视频生成封面
 python src/auto_generate_cover.py --video ../data/video.mp4
+
+# 从图片生成封面 🆕
+python src/image_to_cover.py --image background.jpg --title1 "精彩内容"
 ```
 
 ---

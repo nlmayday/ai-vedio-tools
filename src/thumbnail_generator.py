@@ -170,7 +170,27 @@ class ThumbnailGenerator:
             draw.line([(0, y), (self.width, y)], fill=(r, g, b))
         
         return gradient
-    
+
+    def load_background_image(self, image_path: str) -> Image.Image:
+        """加载背景图片"""
+        try:
+            background = Image.open(image_path).convert('RGB')
+            # 调整图片大小以适应封面尺寸
+            background = background.resize((self.width, self.height), Image.Resampling.LANCZOS)
+
+            # 应用与视频帧相同的处理效果
+            enhancer = ImageEnhance.Brightness(background)
+            background = enhancer.enhance(0.85)  # 提高到0.85，接近原始亮度
+            enhancer = ImageEnhance.Contrast(background)
+            background = enhancer.enhance(1.1)  # 略微增强对比度
+            background = background.filter(ImageFilter.GaussianBlur(radius=1.5))  # 降到1.5，非常轻微
+
+            logger.info(f"📸 使用背景图片: {image_path}")
+            return background
+        except Exception as e:
+            logger.error(f"❌ 加载背景图片失败 {image_path}: {e}")
+            raise
+
     def add_text_with_shadow(
         self,
         draw: ImageDraw.Draw,
@@ -422,6 +442,10 @@ def main():
     parser.add_argument(
         '--video', '-v',
         help='视频文件路径'
+    )
+    parser.add_argument(
+        '--background-image', '-bi',
+        help='背景图片文件路径（替代视频帧或渐变背景）'
     )
     parser.add_argument(
         '--title1', '-t1',

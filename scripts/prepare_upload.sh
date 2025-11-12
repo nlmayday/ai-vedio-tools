@@ -17,7 +17,8 @@ fi
 VIDEO_DIR="$1"
 
 # 运行配置生成
-python3 ../src/bilibili_auto_upload.py --video-dir "$VIDEO_DIR"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+python3 "$SCRIPT_DIR/../src/bilibili_auto_upload.py" --video-dir "$VIDEO_DIR"
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
