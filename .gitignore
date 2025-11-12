@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+*.egg-info/
+
+# 数据输出目录（不要上传大文件）
+data/
+
+# 处理过程中的大文件
+*.mp4
+*.webm
+*.mkv
+*.avi
+*.mov
+
+# 图片文件（如果是输出结果）
+output/**/*.jpg
+output/**/*.jpeg
+output/**/*.png
+
+# 字幕文件（如果是临时生成的）
+*.vtt
+*.srt
+
+# 状态文件
+.processing_state.json
+
+# 临时文件
+*.tmp
+*.log
+.DS_Store
+*.swp
+*~
+
+# 配置文件中的敏感信息（根据需要调整）
+# config.yaml
+
+# IDE
+.vscode/
+.idea/
+*.sublime-*
+
+# 测试输出
+test_*.mp4
+test_*.json
+segment*.mp4
+first_segment*.mp4
+output_*.mp4
+frame_*.jpg

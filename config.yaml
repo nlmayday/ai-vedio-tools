@@ -1,0 +1,61 @@
+# 视频处理配置文件
+
+# 字幕设置
+subtitle:
+  # 字幕类型：soft（软字幕） 或 hard（硬字幕）
+  type: soft
+  # 字体大小（仅硬字幕有效）
+  font_size: 20
+  # 字体名称（仅硬字幕有效）
+  font_name: "PingFang SC"
+
+# 翻译设置
+translation:
+  # 翻译器版本：smart（推荐）、resume、basic
+  translator: smart
+  # 批次大小设置
+  target_size: 50
+  min_size: 30
+  max_size: 70
+  # DeepSeek API 设置
+  model: "deepseek-chat"
+  temperature: 0.3
+  max_tokens: 8000
+
+# 封面设置
+cover:
+  # 默认配色方案：modern, vibrant, elegant, fresh
+  default_schemes:
+    - modern
+    - vibrant
+    - elegant
+    - fresh
+  # 默认尺寸
+  width: 1920
+  height: 1080
+  # 视频帧提取位置（0.0-1.0）
+  frame_position: 0.3
+  # AI生成文案设置
+  ai_generation:
+    model: "deepseek-chat"
+    temperature: 0.7
+    max_tokens: 1500
+
+# 自动处理设置
+auto_process:
+  # 检查间隔（秒）
+  check_interval: 60
+  # 目录设置
+  data_dir: "../data"
+  backup_dir: "../data/backup"
+  output_dir: "../output"
+  # 是否生成B站字幕文件（单独的中英文SRT）
+  generate_bilibili_subtitles: true
+  # 是否生成封面
+  generate_covers: true
+  # 是否生成带字幕的视频（到output目录）
+  generate_subtitle_video: true
+  # 备份后是否删除 data 目录中的原文件（节省空间）
+  # 建议：先设为 false 确保处理成功后再改为 true
+  delete_after_backup: false
+
