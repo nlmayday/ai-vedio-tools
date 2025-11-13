@@ -33,7 +33,16 @@ echo "🇨🇳 中文: $(basename "$ZH_SUB")"
 echo ""
 
 # 从配置文件读取字幕类型
-SUBTITLE_TYPE=$(grep "type:" ../config.yaml | awk '{print $2}')
+# 使用 Python 读取 YAML 配置（最可靠的方式）
+SUBTITLE_TYPE=$(python3 -c "
+import yaml
+try:
+    with open('../config.yaml', 'r', encoding='utf-8') as f:
+        config = yaml.safe_load(f)
+        print(config.get('subtitle', {}).get('type', 'soft'))
+except:
+    print('soft')
+")
 SUBTITLE_TYPE=${SUBTITLE_TYPE:-soft}
 
 echo "📦 字幕类型: $SUBTITLE_TYPE"
@@ -50,6 +59,7 @@ python "$SCRIPT_DIR/../src/video_subtitle_merger.py" \
   --video "$VIDEO" \
   --en-subtitle "$EN_SUB" \
   --zh-subtitle "$ZH_SUB" \
+  --type "$SUBTITLE_TYPE" \
   --output "$OUTPUT_DIR/video_bilingual_${SUBTITLE_TYPE}.mp4"
 
 echo ""

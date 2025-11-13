@@ -3,7 +3,7 @@
 # 字幕设置
 subtitle:
   # 字幕类型：soft（软字幕） 或 hard（硬字幕）
-  type: soft
+  type: hard
   # 字体大小（仅硬字幕有效）
   font_size: 20
   # 字体名称（仅硬字幕有效）

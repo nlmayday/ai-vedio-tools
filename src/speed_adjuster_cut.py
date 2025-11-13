@@ -96,18 +96,44 @@ def build_audio_filter(tempo):
     return ",".join(filters)
 
 
-def process_video_segment(input_video, output_video, start_time, end_time, speed):
-    """处理单个视频片段"""
+def cut_video_segment(input_video, output_video, start_time, end_time):
+    """
+    第一步：从原视频切出片段（不变速，保持原速）
+    """
     duration = end_time - start_time
+    
+    cmd = [
+        'ffmpeg',
+        '-ss', str(start_time),  # 精确定位
+        '-i', input_video,
+        '-t', str(duration),
+        '-c', 'copy',  # 直接复制，不重新编码
+        '-y',
+        output_video
+    ]
+    
+    print(f"  切片段: {start_time:.2f}s - {end_time:.2f}s (时长: {duration:.2f}s)")
+    subprocess.run(cmd, check=True)
+
+
+def apply_speed_to_segment(input_video, output_video, speed):
+    """
+    第二步：对已切好的片段应用变速
+    """
+    if speed == 1.0:
+        # 速度为1.0，直接复制
+        import shutil
+        shutil.copy2(input_video, output_video)
+        print(f"  速度: 1.0x (不变速，直接复制)")
+        return
+    
     video_pts = 1.0 / speed
     audio_tempo = speed
     audio_filter = build_audio_filter(audio_tempo)
     
     cmd = [
         'ffmpeg',
-        '-ss', str(start_time),  # 放在 -i 之前，精确定位
         '-i', input_video,
-        '-t', str(duration),
         '-filter_complex',
         f'[0:v]setpts={video_pts}*PTS[v];[0:a]{audio_filter}[a]',
         '-map', '[v]',
@@ -116,7 +142,7 @@ def process_video_segment(input_video, output_video, start_time, end_time, speed
         output_video
     ]
     
-    print(f"处理片段: {start_time:.2f}s - {end_time:.2f}s, 速度: {speed}x")
+    print(f"  应用变速: {speed}x")
     subprocess.run(cmd, check=True)
 
 
@@ -191,27 +217,51 @@ def process_video_cut_mode(input_video, config, output_video):
     temp_dir = Path("/tmp/video_speed_segments_cut")
     temp_dir.mkdir(exist_ok=True)
     
-    # 只处理配置的片段
-    segment_files = []
+    # 三步处理：先切 → 再变速 → 最后拼接
+    cut_files = []
+    speed_files = []
+    
     try:
+        # 第一步：切出所有片段（保持原速）
+        print(f"\n{'='*60}")
+        print("第一步：从原视频切出所有片段（原速）")
+        print(f"{'='*60}")
+        
         for i, seg in enumerate(segments):
-            temp_output = temp_dir / f"segment_{i:03d}.mp4"
+            cut_file = temp_dir / f"cut_{i:03d}.mp4"
             
-            print(f"\n处理片段 {i+1}/{len(segments)}")
-            
-            process_video_segment(
+            print(f"\n[{i+1}/{len(segments)}] 切片段")
+            cut_video_segment(
                 input_video,
-                str(temp_output),
+                str(cut_file),
                 seg['start'],
-                seg['end'],
+                seg['end']
+            )
+            
+            cut_files.append(str(cut_file))
+        
+        # 第二步：对每个片段应用变速
+        print(f"\n{'='*60}")
+        print("第二步：对每个片段应用变速")
+        print(f"{'='*60}")
+        
+        for i, (cut_file, seg) in enumerate(zip(cut_files, segments)):
+            speed_file = temp_dir / f"speed_{i:03d}.mp4"
+            
+            print(f"\n[{i+1}/{len(segments)}] 变速处理")
+            apply_speed_to_segment(
+                cut_file,
+                str(speed_file),
                 seg['speed']
             )
             
-            segment_files.append(str(temp_output))
+            speed_files.append(str(speed_file))
         
-        # 拼接所有片段
-        print(f"\n开始拼接视频...")
-        concat_videos(segment_files, output_video)
+        # 第三步：拼接所有变速后的片段
+        print(f"\n{'='*60}")
+        print("第三步：拼接所有变速后的片段")
+        print(f"{'='*60}")
+        concat_videos(speed_files, output_video)
         
         print(f"\n✅ 处理完成！输出文件: {output_video}")
         return True
@@ -219,9 +269,9 @@ def process_video_cut_mode(input_video, config, output_video):
     finally:
         # 清理临时文件
         print("\n清理临时文件...")
-        for segment_file in segment_files:
-            if os.path.exists(segment_file):
-                os.remove(segment_file)
+        for temp_file in cut_files + speed_files:
+            if os.path.exists(temp_file):
+                os.remove(temp_file)
 
 
 def main():

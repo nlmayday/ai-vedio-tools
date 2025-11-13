@@ -23,6 +23,7 @@ import subprocess
 import logging
 import argparse
 import shutil
+import yaml
 from pathlib import Path
 from typing import Optional, Tuple, List
 
@@ -50,6 +51,9 @@ class YouTubeToBilibiliProcessor:
         self.work_dir = Path(work_dir).absolute()
         self.work_dir.mkdir(parents=True, exist_ok=True)
         
+        # 加载配置文件
+        self.config = self._load_config()
+        
         # 提取视频ID
         self.video_id = self._extract_video_id(youtube_url)
         if not self.video_id:
@@ -57,6 +61,22 @@ class YouTubeToBilibiliProcessor:
         
         logger.info(f"📹 视频ID: {self.video_id}")
         logger.info(f"📁 工作目录: {self.work_dir}")
+    
+    def _load_config(self):
+        """加载配置文件"""
+        config_path = Path(__file__).parent.parent / 'config.yaml'
+        try:
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config = yaml.safe_load(f)
+            logger.info(f"✅ 已加载配置: {config_path.name}")
+            return config
+        except Exception as e:
+            logger.warning(f"无法加载配置文件，使用默认配置: {e}")
+            return {
+                'subtitle': {'type': 'soft', 'font_size': 20},
+                'translation': {'translator': 'smart'},
+                'cover': {'default_schemes': ['modern', 'vibrant', 'elegant', 'fresh']}
+            }
     
     def _extract_video_id(self, url: str) -> Optional[str]:
         """从YouTube URL中提取视频ID"""
@@ -446,8 +466,12 @@ class YouTubeToBilibiliProcessor:
         logger.info("🎬 步骤 4/5：合并字幕到视频")
         logger.info("=" * 70)
         
+        # 从配置读取字幕类型
+        subtitle_type = self.config.get('subtitle', {}).get('type', 'soft')
+        logger.info(f"📦 字幕类型: {subtitle_type}")
+        
         # 输出路径
-        output_video = output_dir / 'video_bilingual_soft.mp4'
+        output_video = output_dir / f'video_bilingual_{subtitle_type}.mp4'
         
         # 如果已存在，跳过
         if output_video.exists():
@@ -463,7 +487,7 @@ class YouTubeToBilibiliProcessor:
             '--video', str(video_path),
             '--en-subtitle', str(en_subtitle),
             '--zh-subtitle', str(zh_subtitle),
-            '--type', 'soft',
+            '--type', self.config.get('subtitle', {}).get('type', 'soft'),
             '--output', str(output_video)
         ]
         

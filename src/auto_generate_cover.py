@@ -243,28 +243,50 @@ class AutoCoverGenerator:
         os.makedirs(video_output_dir, exist_ok=True)
         logger.info(f"📁 输出目录: {video_output_dir}")
         
-        # 检查是否已有文案文件
-        texts_file = os.path.join(video_output_dir, "cover_texts.json")
+        # 文案文件路径（优先检查 data 目录作为缓存）
+        video_dir = os.path.dirname(video_path)
+        cache_texts_file = os.path.join(video_dir, f"{video_name}_cover_texts.json")
+        output_texts_file = os.path.join(video_output_dir, "cover_texts.json")
         
-        if os.path.exists(texts_file):
-            logger.info(f"✅ 发现已有文案文件，直接使用（跳过 DeepSeek 请求）")
+        texts = None
+        
+        # 1. 优先检查 data 目录的缓存文件
+        if os.path.exists(cache_texts_file):
+            logger.info(f"✅ 发现缓存文案文件，直接使用（跳过 DeepSeek 请求）")
+            logger.info(f"   位置: {cache_texts_file}")
             try:
-                with open(texts_file, 'r', encoding='utf-8') as f:
+                with open(cache_texts_file, 'r', encoding='utf-8') as f:
                     texts = json.load(f)
                 logger.info(f"   封面标题: {texts.get('title1', 'N/A')} / {texts.get('title2', 'N/A')}")
             except Exception as e:
-                logger.warning(f"   ⚠️  读取文案失败: {e}，重新生成")
-                texts = self.generate_cover_text(video_name)
-                with open(texts_file, 'w', encoding='utf-8') as f:
-                    json.dump(texts, f, ensure_ascii=False, indent=2)
-        else:
-            # 生成新文案
+                logger.warning(f"   ⚠️  读取缓存失败: {e}")
+        
+        # 2. 检查 output 目录的文件
+        if not texts and os.path.exists(output_texts_file):
+            logger.info(f"✅ 发现输出目录文案文件，直接使用（跳过 DeepSeek 请求）")
+            try:
+                with open(output_texts_file, 'r', encoding='utf-8') as f:
+                    texts = json.load(f)
+                logger.info(f"   封面标题: {texts.get('title1', 'N/A')} / {texts.get('title2', 'N/A')}")
+            except Exception as e:
+                logger.warning(f"   ⚠️  读取文案失败: {e}")
+        
+        # 3. 都没有则调用 API 生成
+        if not texts:
             texts = self.generate_cover_text(video_name)
             
-            # 保存文案到文件
-            with open(texts_file, 'w', encoding='utf-8') as f:
-                json.dump(texts, f, ensure_ascii=False, indent=2)
-            logger.info(f"💾 文案已保存: {texts_file}")
+            # 保存到 data 目录作为缓存
+            try:
+                with open(cache_texts_file, 'w', encoding='utf-8') as f:
+                    json.dump(texts, f, ensure_ascii=False, indent=2)
+                logger.info(f"💾 文案缓存已保存: {cache_texts_file}")
+            except Exception as e:
+                logger.warning(f"⚠️  保存缓存失败: {e}")
+        
+        # 保存到 output 目录
+        with open(output_texts_file, 'w', encoding='utf-8') as f:
+            json.dump(texts, f, ensure_ascii=False, indent=2)
+        logger.info(f"💾 文案已保存: {output_texts_file}")
         
         # 生成所有封面
         generated_covers = []
