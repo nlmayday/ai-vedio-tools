@@ -26,6 +26,7 @@ class ThumbnailGenerator:
             'gradient_start': (15, 32, 39),      # 深蓝
             'gradient_end': (32, 58, 67),        # 蓝灰
             'title_color': (255, 255, 255),      # 白色
+            'title2_color': (64, 224, 208),      # 青色 (与title1区分)
             'subtitle_color': (200, 200, 200),   # 浅灰
             'accent_color': (64, 224, 208),      # 青色
         },
@@ -33,6 +34,7 @@ class ThumbnailGenerator:
             'gradient_start': (88, 24, 69),      # 深紫
             'gradient_end': (199, 0, 57),        # 红色
             'title_color': (255, 255, 255),
+            'title2_color': (255, 215, 0),       # 金色 (与title1区分)
             'subtitle_color': (255, 200, 220),
             'accent_color': (255, 215, 0),       # 金色
         },
@@ -40,6 +42,7 @@ class ThumbnailGenerator:
             'gradient_start': (0, 0, 0),         # 黑色
             'gradient_end': (40, 40, 40),        # 深灰
             'title_color': (255, 215, 0),        # 金色
+            'title2_color': (220, 220, 220),     # 浅灰 (与title1区分)
             'subtitle_color': (200, 200, 200),
             'accent_color': (255, 215, 0),
         },
@@ -47,6 +50,7 @@ class ThumbnailGenerator:
             'gradient_start': (0, 102, 204),     # 蓝色
             'gradient_end': (102, 204, 255),     # 浅蓝
             'title_color': (255, 255, 255),
+            'title2_color': (255, 215, 0),       # 金色 (与title1区分)
             'subtitle_color': (230, 255, 255),
             'accent_color': (255, 193, 7),       # 橙黄
         }
@@ -92,7 +96,8 @@ class ThumbnailGenerator:
         for font_path in font_paths:
             if os.path.exists(font_path):
                 try:
-                    fonts['title'] = ImageFont.truetype(font_path, 120)
+                    fonts['title'] = ImageFont.truetype(font_path, 120)   # title1 大字体
+                    fonts['title2'] = ImageFont.truetype(font_path, 85)   # title2 中等字体 (更小)
                     fonts['subtitle'] = ImageFont.truetype(font_path, 60)
                     fonts['caption'] = ImageFont.truetype(font_path, 40)
                     logger.info(f"✅ 成功加载字体: {font_path}")
@@ -104,6 +109,7 @@ class ThumbnailGenerator:
         if not fonts:
             logger.warning("⚠️  未找到系统字体，使用默认字体")
             fonts['title'] = ImageFont.load_default()
+            fonts['title2'] = ImageFont.load_default()
             fonts['subtitle'] = ImageFont.load_default()
             fonts['caption'] = ImageFont.load_default()
         
@@ -327,7 +333,7 @@ class ThumbnailGenerator:
             y_offset += 140
         
         if title_line2:
-            bbox = draw.textbbox((0, 0), title_line2, font=self.fonts['title'])
+            bbox = draw.textbbox((0, 0), title_line2, font=self.fonts['title2'])
             text_width = bbox[2] - bbox[0]
             x = center_x - text_width // 2
             
@@ -335,11 +341,11 @@ class ThumbnailGenerator:
                 draw,
                 title_line2,
                 (x, y_offset),
-                self.fonts['title'],
-                self.color_scheme['title_color'],
-                shadow_offset=6
+                self.fonts['title2'],
+                self.color_scheme.get('title2_color', self.color_scheme['title_color']),
+                shadow_offset=5
             )
-            y_offset += 160
+            y_offset += 130
         
         # 添加装饰线条（中间）
         self.add_accent_line(

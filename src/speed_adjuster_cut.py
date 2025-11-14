@@ -181,8 +181,25 @@ def process_video_cut_mode(input_video, config, output_video):
     # 解析配置
     if isinstance(config, str):
         if os.path.isfile(config):
-            with open(config, 'r', encoding='utf-8') as f:
-                config_data = json.load(f)
+            # 尝试多种编码方式读取文件
+            encodings = ['utf-8', 'utf-8-sig', 'gbk', 'gb2312', 'latin-1']
+            config_data = None
+            last_error = None
+            
+            for encoding in encodings:
+                try:
+                    with open(config, 'r', encoding=encoding) as f:
+                        config_data = json.load(f)
+                    break
+                except (UnicodeDecodeError, json.JSONDecodeError) as e:
+                    last_error = e
+                    continue
+            
+            if config_data is None:
+                print(f"❌ 错误: 无法读取配置文件 {config}")
+                print(f"   尝试的编码: {', '.join(encodings)}")
+                print(f"   最后的错误: {last_error}")
+                return False
         else:
             config_data = json.loads(config)
     else:
