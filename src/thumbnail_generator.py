@@ -270,8 +270,30 @@ class ThumbnailGenerator:
             # 使用视频帧作为背景
             background = self.extract_frame(video_path, frame_position)
             if background:
-                # 调整大小
-                background = background.resize((self.width, self.height), Image.Resampling.LANCZOS)
+                # 保持宽高比缩放，然后居中裁剪
+                img_ratio = background.width / background.height
+                canvas_ratio = self.width / self.height
+                
+                if img_ratio > canvas_ratio:
+                    # 图片更宽，以高度为准
+                    new_height = self.height
+                    new_width = int(self.height * img_ratio)
+                else:
+                    # 图片更高，以宽度为准
+                    new_width = self.width
+                    new_height = int(self.width / img_ratio)
+                
+                # 缩放图片
+                background = background.resize((new_width, new_height), Image.Resampling.LANCZOS)
+                
+                # 如果需要，居中裁剪
+                if new_width > self.width:
+                    left = (new_width - self.width) // 2
+                    background = background.crop((left, 0, left + self.width, self.height))
+                elif new_height > self.height:
+                    top = (new_height - self.height) // 2
+                    background = background.crop((0, top, self.width, top + self.height))
+                
                 # 基本保持原始亮度，让视频内容清晰可见
                 enhancer = ImageEnhance.Brightness(background)
                 background = enhancer.enhance(0.85)  # 提高到0.85，接近原始亮度

@@ -109,7 +109,10 @@ vedio-tools/
 - 支持加快或减慢任意时间段
 - 自动处理音频同步（保持音调）
 - 支持任意播放速度（0.5x - 2.0x+）
-- 自动填充未配置的时间段（保持原速）
+- **两种模式**：
+  - **保留模式**：保留完整视频，只调整指定片段速度
+  - **裁剪模式**：只保留配置的片段，删除未配置部分（推荐）
+- **裁剪模式增强**：自动生成4种配色封面
 - 适用于跳过无关内容、强调重点、节奏调整
 
 ### 📤 B站自动上传 🆕
@@ -217,19 +220,40 @@ export DEEPSEEK_API_KEY="your_api_key"
 
 ### 7. 视频分段变速 🆕
 
+#### 方式1：完整保留模式（adjust_speed.sh）
 ```bash
-# 根据配置调整视频不同片段的播放速度
+# 保留完整视频，只调整指定片段的播放速度
 ./scripts/adjust_speed.sh input.mp4 examples/speed_config.json output.mp4
+```
 
-# 使用示例配置文件
-./scripts/adjust_speed.sh ./data/video.mp4 examples/speed_config_example.json ./output/video_adjusted.mp4
+#### 方式2：裁剪模式（adjust_speed_cut.sh）⭐⭐⭐
+```bash
+# 一键处理：变速 + 自动生成封面
+./scripts/adjust_speed_cut.sh ./input/07.mp4
 ```
 
 **功能特点：**
-- 对视频的不同时间段设置不同的播放速度
+- ✅ **自动使用配置文件**：`examples/speed_config_example.json`
+- ✅ **自动生成输出路径**：`./output/07/07.mp4`
+- ✅ **自动生成封面**：处理完成后自动生成4种配色封面
+  - `modern.jpg` - 现代风格
+  - `vibrant.jpg` - 活力风格
+  - `elegant.jpg` - 优雅风格
+  - `fresh.jpg` - 清新风格
+- ⚠️ **裁剪模式**：只保留配置的片段，删除未配置的部分
 - 自动处理音频同步（保持音调）
 - 支持任意播放速度（0.5x - 2.0x 及更大范围）
-- 自动填充未指定的时间段（保持原速）
+
+**输出结构：**
+```
+output/
+└── 07/
+    ├── 07.mp4           # 处理后的视频
+    ├── modern.jpg       # 封面（4种配色）
+    ├── vibrant.jpg
+    ├── elegant.jpg
+    └── fresh.jpg
+```
 
 **配置示例：**
 ```json

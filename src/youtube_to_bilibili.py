@@ -188,13 +188,14 @@ class YouTubeToBilibiliProcessor:
         logger.info("")
         
         try:
-            # 执行下载
+            # 执行下载（设置较长的超时时间，大视频可能需要更长时间）
+            # 超时时间：90分钟（5400秒），对于大视频应该足够
             result = subprocess.run(
                 cmd,
                 cwd=self.work_dir,
                 capture_output=True,
                 text=True,
-                timeout=1800  # 30分钟超时
+                timeout=5400  # 90分钟超时
             )
             
             if result.returncode != 0:
@@ -316,7 +317,12 @@ class YouTubeToBilibiliProcessor:
             return True, video_path, en_subtitle, zh_subtitle
             
         except subprocess.TimeoutExpired:
-            logger.error(f"❌ 下载超时（30分钟）")
+            logger.error(f"❌ 下载超时（90分钟）")
+            logger.error(f"   视频太大或网络太慢，下载时间超过了90分钟")
+            logger.error(f"   建议：")
+            logger.error(f"   1. 检查网络连接")
+            logger.error(f"   2. 尝试手动使用 yt-dlp 下载")
+            logger.error(f"   3. 或稍后重试")
             return False, None, None, None
         except Exception as e:
             logger.error(f"❌ 下载失败: {e}")

@@ -3,7 +3,7 @@
 # 字幕设置
 subtitle:
   # 字幕类型：soft（软字幕） 或 hard（硬字幕）
-  type: hard
+  type: soft
   # 字体大小（仅硬字幕有效）
   font_size: 20
   # 字体名称（仅硬字幕有效）
@@ -57,5 +57,5 @@ auto_process:
   generate_subtitle_video: true
   # 备份后是否删除 data 目录中的原文件（节省空间）
   # 建议：先设为 false 确保处理成功后再改为 true
-  delete_after_backup: false
+  delete_after_backup: true
 
