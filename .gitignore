@@ -11,6 +11,8 @@ env/
 
 # 数据输出目录（不要上传大文件）
 data/
+# 但保留封面文案缓存文件
+!data/*_cover_texts.json
 
 # 处理过程中的大文件
 *.mp4
@@ -53,3 +55,8 @@ segment*.mp4
 first_segment*.mp4
 output_*.mp4
 frame_*.jpg
+src/__pycache__/*
+output/
+.playwright-cli/**
+scripts/*.png
+scripts/*.jpg

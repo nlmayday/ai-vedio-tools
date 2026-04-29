@@ -73,9 +73,19 @@ echo "开始烧录..."
 echo ""
 
 # 烧录硬字幕
+# 添加 -movflags +faststart 将 moov atom 移到文件开头，提高兼容性
+# 添加音视频同步参数，确保烧录字幕时音视频保持同步
 ffmpeg -i "$VIDEO_ABS" \
   -vf "subtitles=temp_subtitle.srt" \
+  -c:v libx264 \
+  -preset medium \
+  -crf 23 \
   -c:a copy \
+  -vsync cfr \
+  -copyts \
+  -fflags +genpts \
+  -shortest \
+  -movflags +faststart \
   -y "video_bilingual_hard.mp4"
 
 # 清理临时文件

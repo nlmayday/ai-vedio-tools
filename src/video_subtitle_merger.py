@@ -108,9 +108,9 @@ class VideoSubtitleMerger:
             
             # 字幕文本
             if layout == 'vertical':
-                # 垂直布局：中文在上，英文在下
-                srt_content.append(zh_block['text'])
+                # 垂直布局：英文在上，中文在下
                 srt_content.append(en_block['text'])
+                srt_content.append(zh_block['text'])
             else:
                 # 水平布局：并排显示（实际上SRT不支持，会显示两行）
                 srt_content.append(f"{zh_block['text']} | {en_block['text']}")
@@ -148,6 +148,7 @@ class VideoSubtitleMerger:
         logger.info("   (可在播放器中开关字幕)")
         
         # 注意：使用 -map 1:0 而不是 1:s，因为 SRT 文件被识别为流 1:0
+        # 添加 -movflags +faststart 将 moov atom 移到文件开头，提高兼容性
         cmd = [
             'ffmpeg',
             '-i', video_path,
@@ -161,6 +162,7 @@ class VideoSubtitleMerger:
             '-metadata:s:s:0', 'language=zh-CN',
             '-metadata:s:s:0', 'title=中英双语',
             '-disposition:s:0', 'default',  # 设置字幕为默认显示
+            '-movflags', '+faststart',  # 将 moov atom 移到文件开头
             '-y',  # 覆盖输出文件
             output_path
         ]
@@ -228,11 +230,21 @@ class VideoSubtitleMerger:
         
         try:
             # 简化命令，去掉 force_style，使用默认字体
+            # 添加 -movflags +faststart 将 moov atom 移到文件开头，提高兼容性
+            # 添加音视频同步参数，确保烧录字幕时音视频保持同步
             cmd = [
                 'ffmpeg',
                 '-i', video_path,
                 '-vf', f'subtitles={temp_srt_path}',
-                '-c:a', 'copy',  # 复制音频流
+                '-c:v', 'libx264',  # 明确指定视频编码器
+                '-preset', 'medium',  # 编码预设（平衡速度和质量）
+                '-crf', '23',  # 恒定质量模式（23是较好的质量）
+                '-c:a', 'copy',  # 复制音频流（不重新编码）
+                '-vsync', 'cfr',  # 视频同步：恒定帧率模式，保持原始帧率
+                '-copyts',  # 复制时间戳，保持原始时间基准
+                '-fflags', '+genpts',  # 如果需要，生成缺失的时间戳
+                '-shortest',  # 确保输出长度匹配最短流（视频或音频）
+                '-movflags', '+faststart',  # 将 moov atom 移到文件开头
                 '-y',
                 output_path
             ]

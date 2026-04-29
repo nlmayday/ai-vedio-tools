@@ -163,26 +163,26 @@ class YouTubeToBilibiliProcessor:
                 'yt-dlp',
                 '--write-subs',
                 '--write-auto-subs',  # 包含自动生成的字幕
-                '--sub-langs', 'en,zh,zh-Hans',  # 只下载英文、中文、简体中文
+                '--sub-langs', 'en',  # 只下载英文
                 '--skip-download',  # 跳过视频下载
                 '--cookies-from-browser', 'chrome',
                 '--output', str(self.work_dir / '%(title)s [%(id)s].%(ext)s'),
                 self.youtube_url
             ]
-            logger.info(f"📥 只下载字幕（en, zh, zh-Hans）: {self.youtube_url}")
+            logger.info(f"📥 只下载字幕（英文）: {self.youtube_url}")
         else:
             # 视频不存在，下载视频和字幕
             cmd = [
                 'yt-dlp',
                 '--write-subs',
                 '--write-auto-subs',  # 包含自动生成的字幕
-                '--sub-langs', 'en,zh,zh-Hans',  # 只下载英文、中文、简体中文
+                '--sub-langs', 'en',  # 只下载英文
                 '--embed-subs',
                 '--cookies-from-browser', 'chrome',
                 '--output', str(self.work_dir / '%(title)s [%(id)s].%(ext)s'),
                 self.youtube_url
             ]
-            logger.info(f"📥 正在下载视频和字幕（en, zh, zh-Hans）: {self.youtube_url}")
+            logger.info(f"📥 正在下载视频和字幕（英文）: {self.youtube_url}")
         
         logger.info(f"   命令: {' '.join(cmd)}")
         logger.info("")
