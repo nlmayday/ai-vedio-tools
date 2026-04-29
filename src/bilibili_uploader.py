@@ -85,18 +85,55 @@ PHASE2_TEMPLATE = r"""async (page) => {
         await page.locator(`text="${info.partition}"`).first().click();
       }
     } catch {}
+    await page.keyboard.press('Escape').catch(() => {});
+    await page.waitForTimeout(200);
   }
 
-  // 标签
+  // 标签（每加一个后 input 会重挂载；分区/推荐下拉可能抢焦点，用 Escape 收起；单条失败则重试）
   try {
-    const closeBtns = page.locator('[class*="tag"] [class*="close"], .tag-item .remove');
-    const count = await closeBtns.count();
-    for (let i = 0; i < count; i++) { await closeBtns.nth(0).click(); await page.waitForTimeout(200); }
-    const tagInput = page.locator('input[placeholder*="标签"]').first();
+    await page.keyboard.press('Escape').catch(() => {});
+    await page.waitForTimeout(200);
+
+    const closeBtns = page.locator('[class*="tag"] [class*="close"], .tag-item .remove, [class*="Tag"] [class*="close"], [class*="tag"] .icon-close, [class*="tag-close"], [class*="TagClose"]');
+    for (let c = 0; c < 20 && (await closeBtns.count()) > 0; c++) {
+      await closeBtns.first().click().catch(() => {});
+      await page.waitForTimeout(150);
+    }
+
+    async function resolveTagInput() {
+      let loc = page.locator('input[placeholder*="标签"]').first();
+      if (await loc.count() === 0) loc = page.locator('input[placeholder*="回车"]').first();
+      if (await loc.count() === 0) loc = page.locator('input[placeholder*="创建标签"]').first();
+      if (await loc.count() === 0) loc = page.getByPlaceholder(/按回车|创建标签/).first();
+      if (await loc.count() === 0) {
+        loc = page.locator('[class*="tag"] input[type="text"], [class*="Tag"] input[type="text"], [class*="video-tag"] input').first();
+      }
+      return loc;
+    }
+
+    let prevChipClose = 0;
     for (const tag of tags) {
-      await tagInput.fill(tag);
-      await tagInput.press('Enter');
-      await page.waitForTimeout(300);
+      const t = String(tag || '').trim();
+      if (!t) continue;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        await page.keyboard.press('Escape').catch(() => {});
+        await page.waitForTimeout(120);
+        const tagInput = await resolveTagInput();
+        if (await tagInput.count() === 0) break;
+        await tagInput.scrollIntoViewIfNeeded();
+        await tagInput.click();
+        await page.waitForTimeout(100);
+        await tagInput.fill(t);
+        await page.waitForTimeout(100);
+        await tagInput.press('Enter');
+        await page.keyboard.press('Enter').catch(() => {});
+        await page.waitForTimeout(480);
+        const nowClose = await closeBtns.count();
+        if (nowClose > prevChipClose) {
+          prevChipClose = nowClose;
+          break;
+        }
+      }
     }
   } catch {}
 
@@ -217,71 +254,35 @@ COVER_OPEN_TEMPLATE = r"""async (page) => {
 
   const fixedEntry = page.locator('.cover-main .edit-text, .cover-item .edit-text').first();
   if (await fixedEntry.count() > 0) {
-    console.log('Cover entry selector: .cover-main .edit-text, .cover-item .edit-text');
     await fixedEntry.scrollIntoViewIfNeeded();
     await fixedEntry.click();
     await page.waitForTimeout(2000);
   } else {
-    console.log('Cover entry fixed selector not found, using text fallback');
     const targetInfo = await page.evaluate(() => {
-    const visible = el => !!(el && el.offsetParent !== null);
-    const text = el => (el.innerText || el.textContent || '').replace(/\s+/g, ' ').trim();
-    const clickableScore = el => {
-      const tag = el.tagName.toLowerCase();
-      const cls = el.className ? String(el.className) : '';
-      let score = 0;
-      if (['button', 'a'].includes(tag)) score += 10;
-      if (el.getAttribute('role') === 'button') score += 8;
-      if (/button|btn|cover|bcc/i.test(cls)) score += 5;
-      return score;
-    };
-    const candidates = Array.from(document.querySelectorAll('button, a, [role="button"], div, span'))
-      .filter(visible)
-      .filter(el => /封面设置|设置封面|编辑封面|更改封面/.test(text(el)))
-      .sort((a, b) => {
-        const scoreDiff = clickableScore(b) - clickableScore(a);
-        if (scoreDiff !== 0) return scoreDiff;
-        return text(a).length - text(b).length;
-      });
-    if (!candidates.length) {
-      return { ok: false, reason: '找不到可见的「设置封面/封面设置」入口' };
-    }
-    const target = candidates[0];
-    target.scrollIntoView({ block: 'center', inline: 'center' });
-    const box = target.getBoundingClientRect();
-    return {
-      ok: true,
-      candidates: candidates.slice(0, 5).map(text),
-      x: box.left + box.width / 2,
-      y: box.top + box.height / 2,
-    };
+      const visible = el => !!(el && el.offsetParent !== null);
+      const text = el => (el.innerText || el.textContent || '').replace(/\s+/g, ' ').trim();
+      const candidates = Array.from(document.querySelectorAll('button, a, [role="button"], div, span'))
+        .filter(visible)
+        .filter(el => /封面设置|设置封面|编辑封面|更改封面/.test(text(el)));
+      if (!candidates.length) {
+        return { ok: false, reason: '找不到可见的「设置封面/封面设置」入口' };
+      }
+      const target = candidates[0];
+      target.scrollIntoView({ block: 'center', inline: 'center' });
+      const box = target.getBoundingClientRect();
+      return { ok: true, x: box.left + box.width / 2, y: box.top + box.height / 2 };
     });
-
     if (!targetInfo.ok) throw new Error(targetInfo.reason);
-    console.log('Cover entry candidates:', targetInfo.candidates.join(' | '));
     await page.mouse.click(targetInfo.x, targetInfo.y);
     await page.waitForTimeout(2000);
   }
-
-  const uploadButtons = await page.locator('text=上传封面').count();
-  const dialogHints =
-    await page.locator('text=首页推荐封面').count() +
-    await page.locator('text=个人空间封面').count() +
-    await page.locator('text=封面裁剪').count() +
-    await page.locator('text=完成').count();
-  console.log(`Cover dialog hints=${dialogHints}, uploadButtons=${uploadButtons}`);
-  if (uploadButtons === 0 && dialogHints === 0) {
-    throw new Error('已点击封面入口，但未检测到封面弹窗或上传按钮');
-  }
-
   return 'cover_opened';
 }"""
 
-COVER_UPLOAD_TEMPLATE = r"""async (page) => {
-  const label = {{LABEL_JSON}};
+# 成功时单独跑这份短脚本，日志里不会带上大段兜底代码
+COVER_UPLOAD_DIRECT_TEMPLATE = r"""async (page) => {
   const uploadIndex = {{UPLOAD_INDEX}};
   const cover = {{COVER_JSON}};
-
   const fileInputSel = 'input[type="file"][accept*="image"], input[type="file"][accept*=".jpg"], input[type="file"][accept*=".jpeg"], input[type="file"][accept*=".png"]';
   const coverDialog = page.locator('.bcc-dialog, [class*="bcc-dialog"], [role="dialog"]').filter({ hasText: '封面制作' }).first();
   let imageInputs = coverDialog.locator(fileInputSel);
@@ -290,27 +291,23 @@ COVER_UPLOAD_TEMPLATE = r"""async (page) => {
     imageInputs = page.locator(fileInputSel);
     imageInputCount = await imageInputs.count();
   }
-  console.log(`Image file inputs: ${imageInputCount}, uploadIndex=${uploadIndex} (scoped to 封面制作 when possible)`);
   if (imageInputCount > 0 && uploadIndex < imageInputCount) {
     await imageInputs.nth(uploadIndex).setInputFiles(cover);
     await page.waitForTimeout(1500);
-    console.log('__BILI_COVER_UPLOAD__=direct');
     return 'cover_direct_input_uploaded';
   }
-  if (imageInputCount > 0 && uploadIndex >= imageInputCount) {
-    console.log(`Direct file input skip: need index ${uploadIndex} but only ${imageInputCount} inputs — fall back to click 上传`);
-  }
+  return 'cover_need_fallback';
+}"""
+
+# 仅当直传不可用（input 数量不足等）时执行
+COVER_UPLOAD_FALLBACK_TEMPLATE = r"""async (page) => {
+  const label = {{LABEL_JSON}};
+  const uploadIndex = {{UPLOAD_INDEX}};
+  const cover = {{COVER_JSON}};
 
   const result = await page.evaluate(({ label, uploadIndex }) => {
     const visible = el => !!(el && el.offsetParent !== null);
     const text = el => (el.innerText || el.textContent || '').replace(/\s+/g, ' ').trim();
-    const fileInputs = Array.from(document.querySelectorAll('input[type="file"]'))
-      .map((el, index) => ({ index, accept: el.getAttribute('accept') || '', visible: visible(el) }));
-    const shortTexts = Array.from(document.querySelectorAll('button, a, [role="button"], div, span'))
-      .filter(visible)
-      .map(text)
-      .filter(t => t && t.length <= 30)
-      .slice(0, 120);
     let labelFound = false;
     if (label) {
       const labelEl = Array.from(document.querySelectorAll('*'))
@@ -327,7 +324,7 @@ COVER_UPLOAD_TEMPLATE = r"""async (page) => {
       .filter(el => /上传封面|上传图片|重新上传|本地上传|选择图片|添加图片|点击上传/.test(text(el)))
       .sort((a, b) => text(a).length - text(b).length);
     if (!uploadButtons.length) {
-      return { ok: false, reason: '找不到封面上传按钮', labelFound, uploadButtons: 0, fileInputs, shortTexts };
+      return { ok: false, reason: '找不到封面上传按钮', labelFound, uploadButtons: 0 };
     }
     const target = uploadButtons[Math.min(uploadIndex, uploadButtons.length - 1)];
     target.scrollIntoView({ block: 'center', inline: 'center' });
@@ -341,9 +338,6 @@ COVER_UPLOAD_TEMPLATE = r"""async (page) => {
     };
   }, { label, uploadIndex });
 
-  console.log(`Cover labelFound=${result.labelFound}, uploadButtons=${result.uploadButtons}`);
-  if (result.fileInputs) console.log('File inputs:', JSON.stringify(result.fileInputs));
-  if (result.shortTexts) console.log('Visible short texts:', result.shortTexts.join(' | '));
   if (!result.ok) throw new Error(result.reason);
   await page.mouse.click(result.x, result.y);
   await page.waitForTimeout(1000);
@@ -591,6 +585,35 @@ def _upload_cover_file(cover_file: Path, attempts: int = 5):
 
     raise RuntimeError(f"封面文件投递失败: {last.stderr.strip() if last else 'unknown'}")
 
+
+def _run_cover_upload_step(
+    scripts_dir: Path,
+    file_prefix: str,
+    label_zh: str,
+    upload_index: int,
+    cover_temp: Path,
+):
+    """
+    先执行短「直传 setInputFiles」脚本；成功则不再跑兜底（日志更干净）。
+    仅当返回 cover_need_fallback 时再执行点击上传 + 原生文件选择器路径。
+    """
+    direct = (
+        COVER_UPLOAD_DIRECT_TEMPLATE.replace("{{UPLOAD_INDEX}}", str(upload_index)).replace(
+            "{{COVER_JSON}}", json.dumps(str(cover_temp), ensure_ascii=False)
+        )
+    )
+    res = _run_js_checked(f"{file_prefix}_direct.js", direct, scripts_dir)
+    if _playwright_cli_result_value(res.stdout) == "cover_direct_input_uploaded":
+        return res
+    logger.info("   封面直传不可用，改用点击上传兜底…")
+    fallback = (
+        COVER_UPLOAD_FALLBACK_TEMPLATE.replace("{{LABEL_JSON}}", json.dumps(label_zh, ensure_ascii=False))
+        .replace("{{UPLOAD_INDEX}}", str(upload_index))
+        .replace("{{COVER_JSON}}", json.dumps(str(cover_temp), ensure_ascii=False))
+    )
+    return _run_js_checked(f"{file_prefix}_fb.js", fallback, scripts_dir)
+
+
 def _do_upload(video_dir: str, collection: str, partition: str, auto_close: bool, no_open: bool):
     video_dir = Path(video_dir).resolve()
     info = _find_files(video_dir)
@@ -619,28 +642,14 @@ def _do_upload(video_dir: str, collection: str, partition: str, auto_close: bool
 
         # Step 2: 4:3
         logger.info("🎨 Step 2: 上传 4:3 封面...")
-        c2_res = _run_js_checked(
-            ".c2.js",
-            COVER_UPLOAD_TEMPLATE
-            .replace("{{LABEL_JSON}}", json.dumps("首页推荐封面", ensure_ascii=False))
-            .replace("{{UPLOAD_INDEX}}", "0")
-            .replace("{{COVER_JSON}}", json.dumps(str(cover_temp), ensure_ascii=False)),
-            scripts_dir,
-        )
+        c2_res = _run_cover_upload_step(scripts_dir, ".c2", "首页推荐封面", 0, cover_temp)
         if _cover_step_need_cli_upload(c2_res.stdout):
             _upload_cover_file(cover_temp)
         time.sleep(2)
 
         # Step 3: 16:9
         logger.info("🎨 Step 3: 上传 16:9 封面...")
-        c3_res = _run_js_checked(
-            ".c3.js",
-            COVER_UPLOAD_TEMPLATE
-            .replace("{{LABEL_JSON}}", json.dumps("个人空间封面", ensure_ascii=False))
-            .replace("{{UPLOAD_INDEX}}", "1")
-            .replace("{{COVER_JSON}}", json.dumps(str(cover_temp), ensure_ascii=False)),
-            scripts_dir,
-        )
+        c3_res = _run_cover_upload_step(scripts_dir, ".c3", "个人空间封面", 1, cover_temp)
         if _cover_step_need_cli_upload(c3_res.stdout):
             _upload_cover_file(cover_temp)
         time.sleep(2)
