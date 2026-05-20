@@ -49,7 +49,31 @@ vedio-tools/
 
 ## ✨ 核心功能
 
-### 🎯 YouTube 到 B 站全流程 🆕⭐
+### � YouTube 视频转微信公众号文章 🆕⭐
+
+**自动将YouTube视频转换为适合微信公众号发布的图文内容！**
+
+- ✨ 自动下载YouTube字幕
+- 🤖 使用DeepSeek AI生成专业文章
+- 📝 支持多种文章风格（专业/轻松/学术）
+- 📊 输出Markdown/JSON/纯文本格式
+- 🎯 完美适配公众号排版
+
+```bash
+# 快速开始
+export DEEPSEEK_API_KEY='your-api-key'
+cd src
+python youtube_to_wechat.py https://www.youtube.com/watch?v=xxx
+
+# 高级选项
+python youtube_to_wechat.py URL --word-count 2500 --style professional
+```
+
+**📖 详细文档：** [YouTube转微信公众号文章使用指南](docs/YOUTUBE_TO_WECHAT_GUIDE.md)
+
+---
+
+### �🎯 YouTube 到 B 站全流程 🆕⭐
 - **一键处理**：YouTube 下载 → 翻译 → 封面生成 → 合成 → 上传 B 站
 - 自动下载视频和字幕（支持所有语言）
 - 智能检测字幕情况（有中文跳过翻译）

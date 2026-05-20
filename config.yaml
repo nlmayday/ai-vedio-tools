@@ -22,6 +22,29 @@ translation:
   temperature: 0.3
   max_tokens: 8000
 
+# 微信公众号文章生成设置
+wechat_article:
+  # 是否启用
+  enabled: true
+  # 默认文章字数
+  default_word_count: 2000
+  # 默认文章风格：professional（专业）、casual（轻松）、academic（学术）
+  default_style: "professional"
+  # DeepSeek API 设置
+  model: "deepseek-chat"
+  temperature: 0.7
+  max_tokens: 8000
+  # 文章结构要求
+  structure:
+    intro_length: 150        # 引言字数
+    analysis_length: 400     # 每个观点分析字数
+    summary_length: 150      # 总结字数
+  # 排版设置
+  formatting:
+    use_emoji: true          # 是否使用emoji
+    use_tables: true         # 是否使用表格
+    use_quotes: true         # 是否使用引用块
+
 # 封面设置
 cover:
   # 默认配色方案：modern, vibrant, elegant, fresh
